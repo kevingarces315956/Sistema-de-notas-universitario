@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Notas Universidad</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .caja { border: 1px solid #ccc; padding: 15px; margin: 10px 0; }
+        input, button { margin: 5px; padding: 8px; }
+        button { cursor: pointer; background: #007bff; color: white; border: none; }
+        pre { background: #f4f4f4; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🎓 Sistema de Notas</h1>
+    
+    <div class="caja">
+        <h3>1. Crear Estudiante</h3>
+        <input type="text" id="cedula" placeholder="Cédula">
+        <input type="text" id="nombre" placeholder="Nombre">
+        <button onclick="crear()">Crear</button>
+    </div>
+
+    <div class="caja">
+        <h3>2. Agregar Nota</h3>
+        <input type="text" id="notaCedula" placeholder="Cédula">
+        <input type="number" id="notaValor" placeholder="Nota (0-10)">
+        <button onclick="agregarNota()">Agregar</button>
+    </div>
+
+    <div class="caja">
+        <h3>3. Quitar Última Nota</h3>
+        <input type="text" id="quitarCedula" placeholder="Cédula">
+        <button onclick="quitarNota()">Quitar</button>
+    </div>
+
+    <div class="caja">
+        <h3>4. Ver Promedio</h3>
+        <input type="text" id="verCedula" placeholder="Cédula">
+        <button onclick="ver()">Ver</button>
+    </div>
+
+    <div class="caja">
+        <h3>Resultado:</h3>
+        <pre id="resultado">Esperando acción...</pre>
+    </div>
+
+    <script>
+        async function crear() {
+            await fetch('/estudiante', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    cedula: document.getElementById('cedula').value,
+                    nombre: document.getElementById('nombre').value
+                })
+            });
+            alert('Estudiante creado');
+        }
+
+        async function agregarNota() {
+            await fetch('/nota', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    cedula: document.getElementById('notaCedula').value,
+                    nota: parseFloat(document.getElementById('notaValor').value)
+                })
+            });
+            alert('Nota agregada');
+        }
+
+        async function quitarNota() {
+            let cedula = document.getElementById('quitarCedula').value;
+            await fetch(`/nota/${cedula}`, {method: 'DELETE'});
+            alert('Última nota eliminada');
+        }
+
+        async function ver() {
+            let cedula = document.getElementById('verCedula').value;
+            let res = await fetch(`/promedio/${cedula}`);
+            let data = await res.json();
+            document.getElementById('resultado').innerHTML = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>
