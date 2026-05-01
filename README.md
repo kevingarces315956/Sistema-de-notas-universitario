@@ -28,5 +28,6 @@ mi_universidad/
 1. Abrir terminal o CMD  
 
 2. Navegar a la carpeta del proyecto:
+
 ```bash
 cd ruta/donde/esta/mi_universidad
