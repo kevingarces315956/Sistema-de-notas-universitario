@@ -27,6 +27,7 @@ Aplicación web para gestionar estudiantes y calcular promedios de notas univers
 - [Requisitos previos](#-requisitos-previos)
 - [Instalación](#-instalación)
 - [Ejecución](#-ejecución)
+- [Despliegue con Docker](#-despliegue-con-docker)
 - [Uso de la aplicación](#-uso-de-la-aplicación)
 - [API REST](#-api-rest)
 - [Modelo de datos](#-modelo-de-datos)
@@ -39,7 +40,7 @@ Aplicación web para gestionar estudiantes y calcular promedios de notas univers
 
 **Sistema de Notas Universitario** es una aplicación web sencilla que permite a un usuario gestionar los datos académicos básicos de estudiantes universitarios: registrar estudiantes, asignarles notas, eliminar la última nota registrada y obtener el promedio de sus calificaciones.
 
-El backend está construido con **Flask** (que internamente usa el servidor WSGI **Werkzeug**) y persiste la información en una base de datos local **SQLite** (`estudiantes.db`). El frontend es una página HTML única con estilos CSS y lógica en JavaScript que consume la API mediante `fetch`.
+El backend está construido con **Flask** (que internamente usa el servidor WSGI **Werkzeug**, o **Gunicorn** en producción) y persiste la información en una base de datos local **SQLite** (`estudiantes.db`). El frontend usa una plantilla HTML servida por Flask, con **CSS y JavaScript externos** (carpeta `static/`) y un diseño moderno con cards, gradientes y notificaciones tipo *toast*.
 
 > [!NOTE]
 > El archivo `estudiantes.db` se crea automáticamente la primera vez que se ejecuta la aplicación y la información persiste entre ejecuciones.
@@ -55,6 +56,8 @@ El backend está construido con **Flask** (que internamente usa el servidor WSGI
 - ✅ **Persistencia local** mediante SQLite, sin necesidad de servidor de BD externo.
 - ✅ **API REST** simple en formato JSON.
 - ✅ **Frontend embebido** servido por la misma aplicación Flask.
+- ✅ **UI moderna** con CSS responsive, validaciones y notificaciones *toast*.
+- ✅ **Despliegue con Docker** (imagen slim, Gunicorn y volumen para persistir la BD).
 
 ---
 
@@ -64,11 +67,12 @@ El backend está construido con **Flask** (que internamente usa el servidor WSGI
 |------|------------|-------------|
 | Backend | **Python 3.8+** | Lenguaje principal |
 | Framework | **Flask 3.x** | Microframework web |
-| Servidor WSGI | **Werkzeug** | Incluido con Flask para desarrollo |
+| Servidor WSGI | **Werkzeug** / **Gunicorn** | Werkzeug para desarrollo, Gunicorn para producción/Docker |
 | Base de datos | **SQLite 3** | Motor embebido, archivo local |
-| Frontend | **HTML5 + CSS3** | Estructura y estilos |
+| Frontend | **HTML5 + CSS3** | Estructura y estilos modernos (gradientes, cards, responsive) |
 | Cliente HTTP | **JavaScript (fetch API)** | Llamadas asíncronas a la API |
 | Plantillas | **Jinja2** | Motor de templates de Flask |
+| Contenedores | **Docker + Docker Compose** | Imagen `python:3.12-slim` |
 
 ---
 
@@ -77,19 +81,25 @@ El backend está construido con **Flask** (que internamente usa el servidor WSGI
 ```text
 repositorio_kevin/
 ├── README.md                  # Documentación principal (este archivo)
-├── readme                     # Documentación previa (legacy)
 ├── gitignore                  # Patrones ignorados por Git
-├── require.txt                # Dependencias auxiliares (numpy, pandas)
-├── main.py                    # Script de prueba ("hola")
+├── docker-compose.yml         # 🐳 Orquestación del servicio
 └── mi_universidad/            # 📦 Aplicación principal
     ├── app.py                 # Backend Flask + SQLite (rutas y lógica)
+    ├── requirements.txt       # Dependencias de la app (Flask, Gunicorn)
+    ├── Dockerfile             # 🐳 Imagen slim de la aplicación
+    ├── .dockerignore          # Exclusiones para el contexto Docker
     ├── estudiantes.db         # BD SQLite (se crea automáticamente)
-    └── templates/
-        └── index.html         # Frontend (HTML + CSS + JS)
+    ├── templates/
+    │   └── index.html         # Plantilla Jinja2 del frontend
+    └── static/
+        ├── css/
+        │   └── styles.css     # Estilos modernos
+        └── js/
+            └── app.js         # Lógica del cliente (fetch + UI)
 ```
 
 > [!IMPORTANT]
-> Toda la aplicación funcional vive dentro de la carpeta [`mi_universidad/`](mi_universidad/). Los archivos de la raíz (`main.py`, `require.txt`) son auxiliares y **no son necesarios** para ejecutar el sistema.
+> Toda la aplicación funcional vive dentro de la carpeta [`mi_universidad/`](mi_universidad/). Las dependencias están declaradas en [`mi_universidad/requirements.txt`](mi_universidad/requirements.txt).
 
 ---
 
@@ -144,11 +154,11 @@ source venv/bin/activate
 ### 3. Instalar las dependencias
 
 ```bash
-pip install flask
+pip install -r mi_universidad/requirements.txt
 ```
 
 > [!TIP]
-> El archivo `require.txt` de la raíz contiene `numpy` y `pandas`, pero **no son necesarios** para esta aplicación. Solo Flask es obligatorio.
+> Las dependencias necesarias son **Flask** (servidor web) y **Gunicorn** (servidor WSGI usado en Docker).
 
 ---
 
@@ -180,7 +190,75 @@ Visita 👉 **[http://localhost:5000](http://localhost:5000)**
 Presiona <kbd>Ctrl</kbd> + <kbd>C</kbd> en la terminal donde se está ejecutando.
 
 > [!WARNING]
-> El servidor que viene con Flask (`app.run`) es para **desarrollo únicamente**. Para un despliegue de producción se recomienda usar un servidor WSGI dedicado como **Waitress** (Windows) o **Gunicorn** (Linux/macOS).
+> El servidor que viene con Flask (`app.run`) es para **desarrollo únicamente**. Para un despliegue de producción se recomienda usar un servidor WSGI dedicado como **Gunicorn** (incluido en la imagen Docker) o **Waitress** (Windows).
+
+---
+
+## 🐳 Despliegue con Docker
+
+El proyecto incluye un [`Dockerfile`](mi_universidad/Dockerfile) basado en `python:3.12-slim` y un [`docker-compose.yml`](docker-compose.yml) en la raíz que orquesta el servicio con un **volumen persistente** para la base de datos.
+
+### Requisitos
+
+- [Docker](https://docs.docker.com/get-docker/) 20.10+
+- [Docker Compose](https://docs.docker.com/compose/install/) v2+
+
+### 1. Levantar el servicio
+
+Desde la raíz del repositorio:
+
+```bash
+docker compose up -d --build
+```
+
+Esto:
+
+1. Construye la imagen `mi-universidad:latest` a partir de [`mi_universidad/Dockerfile`](mi_universidad/Dockerfile).
+2. Inicia el contenedor `mi_universidad` en segundo plano.
+3. Expone la app en [http://localhost:5000](http://localhost:5000).
+4. Crea el volumen `mi_universidad_data` donde se persiste `estudiantes.db`.
+
+### 2. Comandos útiles
+
+```bash
+# Ver logs en vivo
+docker compose logs -f
+
+# Reiniciar el servicio
+docker compose restart
+
+# Detener y eliminar el contenedor (los datos persisten en el volumen)
+docker compose down
+
+# Detener y borrar TAMBIÉN los datos (volumen)
+docker compose down -v
+
+# Reconstruir tras cambios de código
+docker compose up -d --build
+```
+
+### 3. Variables de entorno soportadas
+
+| Variable | Por defecto | Descripción |
+|----------|-------------|-------------|
+| `PORT` | `5000` | Puerto en el que escucha Gunicorn dentro del contenedor |
+| `DB_PATH` | `/data/estudiantes.db` | Ruta del archivo SQLite (en Docker apunta al volumen) |
+| `FLASK_DEBUG` | `1` | Solo aplica al modo desarrollo (`python app.py`) |
+
+### 4. Detalles de la imagen
+
+- **Base:** `python:3.12-slim` (~150 MB).
+- **Servidor:** Gunicorn con 2 workers, escuchando en `0.0.0.0:${PORT}`.
+- **Usuario:** `appuser` (no root) para mayor seguridad.
+- **Healthcheck:** `curl` cada 30 s a `GET /`.
+- **Persistencia:** la BD vive en `/data` dentro del contenedor, montada como volumen Docker.
+
+> [!TIP]
+> Para correr la imagen sin Docker Compose:
+> ```bash
+> docker build -t mi-universidad ./mi_universidad
+> docker run -d -p 5000:5000 -v mi_universidad_data:/data --name mi_universidad mi-universidad
+> ```
 
 ---
 
@@ -377,7 +455,32 @@ Verifica que tienes **permisos de escritura** en la carpeta `mi_universidad/`. E
 <details>
 <summary><b>❌ La página no carga estilos o JavaScript</b></summary>
 
-Asegúrate de estar accediendo desde [http://localhost:5000](http://localhost:5000) y **no** abriendo el archivo `index.html` directamente desde el explorador de archivos.
+Asegúrate de estar accediendo desde [http://localhost:5000](http://localhost:5000) y **no** abriendo el archivo `index.html` directamente desde el explorador de archivos. Flask sirve los archivos de [`mi_universidad/static/`](mi_universidad/static/) en `/static/...`.
+
+</details>
+
+<details>
+<summary><b>❌ El contenedor Docker no arranca o se reinicia</b></summary>
+
+Revisa los logs:
+
+```bash
+docker compose logs -f mi_universidad
+```
+
+Si el puerto 5000 está ocupado en el host, cambia el mapeo en `docker-compose.yml`:
+
+```yaml
+ports:
+  - "5050:5000"   # accede en http://localhost:5050
+```
+
+</details>
+
+<details>
+<summary><b>❌ Perdí los datos al reiniciar el contenedor</b></summary>
+
+Asegúrate de **no** haber ejecutado `docker compose down -v` (la flag `-v` borra el volumen). Para reinicios normales usa solo `docker compose down` o `docker compose restart`.
 
 </details>
 

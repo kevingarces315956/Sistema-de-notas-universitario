@@ -1,16 +1,22 @@
-from flask import Flask, request, jsonify, render_template
+import os
 import sqlite3
+from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
+DB_PATH = os.environ.get('DB_PATH', 'estudiantes.db')
+
 # ========== BASE DE DATOS ==========
 def init_db():
-    conn = sqlite3.connect('estudiantes.db')
-    conn.execute('''CREATE TABLE IF NOT EXISTS estudiantes 
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute('''CREATE TABLE IF NOT EXISTS estudiantes
                  (cedula TEXT PRIMARY KEY, nombre TEXT)''')
-    conn.execute('''CREATE TABLE IF NOT EXISTS notas 
+    conn.execute('''CREATE TABLE IF NOT EXISTS notas
                  (id INTEGER PRIMARY KEY, cedula TEXT, nota REAL)''')
     conn.close()
+
+# Inicializa la BD también cuando se ejecuta bajo gunicorn/WSGI
+init_db()
 
 # ========== API ==========
 @app.route('/')
@@ -20,8 +26,8 @@ def front():
 @app.route('/estudiante', methods=['POST'])
 def crear_estudiante():
     data = request.json
-    conn = sqlite3.connect('estudiantes.db')
-    conn.execute('INSERT INTO estudiantes VALUES (?, ?)', 
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute('INSERT INTO estudiantes VALUES (?, ?)',
                  (data['cedula'], data['nombre']))
     conn.commit()
     conn.close()
@@ -30,8 +36,8 @@ def crear_estudiante():
 @app.route('/nota', methods=['POST'])
 def agregar_nota():
     data = request.json
-    conn = sqlite3.connect('estudiantes.db')
-    conn.execute('INSERT INTO notas (cedula, nota) VALUES (?, ?)', 
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute('INSERT INTO notas (cedula, nota) VALUES (?, ?)',
                  (data['cedula'], data['nota']))
     conn.commit()
     conn.close()
@@ -39,7 +45,7 @@ def agregar_nota():
 
 @app.route('/nota/<cedula>', methods=['DELETE'])
 def quitar_nota(cedula):
-    conn = sqlite3.connect('estudiantes.db')
+    conn = sqlite3.connect(DB_PATH)
     conn.execute('DELETE FROM notas WHERE id = (SELECT id FROM notas WHERE cedula = ? ORDER BY id DESC LIMIT 1)', (cedula,))
     conn.commit()
     conn.close()
@@ -47,18 +53,19 @@ def quitar_nota(cedula):
 
 @app.route('/promedio/<cedula>')
 def ver_promedio(cedula):
-    conn = sqlite3.connect('estudiantes.db')
+    conn = sqlite3.connect(DB_PATH)
     # Obtener estudiante
     est = conn.execute('SELECT * FROM estudiantes WHERE cedula = ?', (cedula,)).fetchone()
     if not est:
+        conn.close()
         return jsonify({'error': 'No existe'}), 404
-    
+
     # Obtener notas
     notas = conn.execute('SELECT nota FROM notas WHERE cedula = ?', (cedula,)).fetchall()
     conn.close()
-    
+
     promedio = sum(n[0] for n in notas) / len(notas) if notas else 0
-    
+
     return jsonify({
         'cedula': cedula,
         'nombre': est[1],
@@ -71,5 +78,6 @@ def ver_promedio(cedula):
 application = app  # Para servidores como Apache/mod_wsgi
 
 if __name__ == '__main__':
-    init_db()
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', '1') == '1'
+    app.run(host='0.0.0.0', port=port, debug=debug)
