@@ -1,4 +1,3 @@
-
 # 📘 Sistema de Notas Universitario - Versión 1.0
 
 ## 📖 Descripción del proyecto
@@ -22,5 +21,4 @@ mi_universidad/
 ├── app.py              # Backend con Flask y SQLite
 ├── templates/
 │   └── index.html     # Frontend con HTML/CSS/JS
-└── estudiantes.db     # Base de datos (se crea automáticamente)ç
-
+└── estudiantes.db     # Base de datos (se crea automáticamente)
