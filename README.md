@@ -2,7 +2,7 @@
 
 # 🎓 Sistema de Notas Universitario
 
-**Versión 1.0**
+**v3.0.0** — *Arquitectura Híbrida con Gestión de Asignaturas*
 
 Aplicación web para gestionar estudiantes y calcular promedios de notas universitarias.
 
@@ -39,20 +39,20 @@ Aplicación web para gestionar estudiantes y calcular promedios de notas univers
 ## 📖 Descripción
 
 **Sistema de Notas Universitario** es una aplicación web sencilla que permite a un usuario gestionar los datos académicos básicos de estudiantes universitarios: registrar estudiantes, asignarles notas, eliminar la última nota registrada y obtener el promedio de sus calificaciones.
-
-El backend está construido con **Flask** (que internamente usa el servidor WSGI **Werkzeug**, o **Gunicorn** en producción) y persiste la información en una base de datos local **SQLite** (`estudiantes.db`). El frontend usa una plantilla HTML servida por Flask, con **CSS y JavaScript externos** (carpeta `static/`) y un diseño moderno con cards, gradientes y notificaciones tipo *toast*.
+El backend está construido con **Flask** y persiste la información en una base de datos local **SQLite** (`universidad.db`). Esta versión **Híbrida** introduce una arquitectura de múltiples asignaturas y actividades ponderadas, permitiendo un cálculo exacto de promedios basado en porcentajes configurables. El frontend es una SPA (Single Page Application) moderna con navegación por pestañas.
 
 > [!NOTE]
-> El archivo `estudiantes.db` se crea automáticamente la primera vez que se ejecuta la aplicación y la información persiste entre ejecuciones.
+> El archivo `universidad.db` se crea automáticamente y soporta integridad referencial (Foreign Keys).
 
 ---
 
 ## ✨ Características
 
-- ✅ **Crear estudiante** registrando cédula (clave primaria) y nombre.
-- ✅ **Agregar notas** asociadas a un estudiante existente (rango sugerido 0–10).
-- ✅ **Quitar la última nota** del estudiante (LIFO).
-- ✅ **Ver promedio** automático de todas las notas del estudiante.
+- ✅ **Gestión de Asignaturas:** Crea múltiples materias de forma independiente.
+- ✅ **Actividades Ponderadas:** Configura actividades (Parciales, Quices, Talleres) con sus respectivos porcentajes (ej. 30%, 20%).
+- ✅ **Sistema de Estudiantes:** Registro de alumnos vinculados a asignaturas específicas.
+- ✅ **Promedios Ponderados:** Cálculo automático basado en el peso de cada actividad.
+- ✅ **Interfaz de Pestañas:** Navegación fluida entre Estudiantes, Calificaciones y Configuración.
 - ✅ **Persistencia local** mediante SQLite, sin necesidad de servidor de BD externo.
 - ✅ **API REST** simple en formato JSON.
 - ✅ **Frontend embebido** servido por la misma aplicación Flask.
@@ -88,7 +88,7 @@ repositorio_kevin/
     ├── requirements.txt       # Dependencias de la app (Flask, Gunicorn)
     ├── Dockerfile             # 🐳 Imagen slim de la aplicación
     ├── .dockerignore          # Exclusiones para el contexto Docker
-    ├── estudiantes.db         # BD SQLite (se crea automáticamente)
+    ├── universidad.db         # BD SQLite (esquema multi-tabla)
     ├── templates/
     │   └── index.html         # Plantilla Jinja2 del frontend
     └── static/
@@ -264,16 +264,16 @@ docker compose up -d --build
 
 ## 🖱️ Uso de la aplicación
 
-La interfaz web tiene **4 secciones**:
+La interfaz web se organiza en **3 paneles principales**:
 
-| # | Acción | Campos | Resultado |
-|---|--------|--------|-----------|
-| 1 | **Crear estudiante** | Cédula, Nombre | Registra el estudiante en la BD |
-| 2 | **Agregar nota** | Cédula, Nota (0–10) | Añade una nota al estudiante |
-| 3 | **Quitar última nota** | Cédula | Borra la nota más reciente |
-| 4 | **Ver promedio** | Cédula | Muestra nombre, notas y promedio |
+| Panel | Acción | Descripción |
+|---|---|---|
+| **Estudiantes** | Registro y Listado | Inscribe alumnos en la asignatura seleccionada y muestra sus promedios. |
+| **Calificaciones** | Gestión de Notas | Asigna valores a las actividades configuradas para cada estudiante. |
+| **Actividades** | Configuración de Pesos | Define el nombre y el porcentaje (peso) de cada evaluación. |
 
-El resultado de cada operación aparece en el bloque **Resultado** al final de la página.
+> [!TIP]
+> Primero debes crear o seleccionar una **Asignatura** en el menú superior para habilitar la gestión de datos.
 
 ---
 
@@ -281,133 +281,57 @@ El resultado de cada operación aparece en el bloque **Resultado** al final de l
 
 Todos los endpoints aceptan/responden en formato **JSON**.
 
-### `GET /`
-
-Devuelve la página HTML principal (frontend).
-
 ---
 
-### `POST /estudiante`
+### `POST /asignatura` | Crea una nueva materia.
+`{ "nombre": "Cálculo Integral" }`
 
-Crea un nuevo estudiante.
+### `POST /tipo_nota` | Define una actividad evaluativa (ej: Parcial) con su peso porcentual.
+`{ "nombre": "Examen", "porcentaje": 30, "asignatura_id": 1 }`
 
-**Body:**
+### `POST /estudiante` | Registra un alumno en una materia.
+`{ "cedula": "123", "nombre": "Juan", "asignatura_id": 1 }`
 
-```json
-{
-  "cedula": "12345678",
-  "nombre": "Juan Pérez"
-}
-```
+### `POST /nota` | Guarda o actualiza la calificación.
+`{ "estudiante_id": 1, "tipo_nota_id": 5, "valor": 4.5 }`
 
-**Respuesta:**
-
-```json
-{ "ok": true }
-```
-
----
-
-### `POST /nota`
-
-Agrega una nota a un estudiante existente.
-
-**Body:**
-
-```json
-{
-  "cedula": "12345678",
-  "nota": 8.5
-}
-```
-
-**Respuesta:**
-
-```json
-{ "ok": true }
-```
-
----
-
-### `DELETE /nota/<cedula>`
-
-Elimina la **última nota** registrada del estudiante (la de mayor `id`).
-
-**Ejemplo:**
-
-```bash
-curl -X DELETE http://localhost:5000/nota/12345678
-```
-
-**Respuesta:**
-
-```json
-{ "ok": true }
-```
-
----
-
-### `GET /promedio/<cedula>`
-
-Devuelve el detalle del estudiante junto con sus notas y promedio calculado.
-
-**Ejemplo:**
-
-```bash
-curl http://localhost:5000/promedio/12345678
-```
-
-**Respuesta exitosa (200):**
-
-```json
-{
-  "cedula": "12345678",
-  "nombre": "Juan Pérez",
-  "notas": [8.5, 9.0, 7.5],
-  "promedio": 8.33
-}
-```
-
-**Respuesta si no existe el estudiante (404):**
-
-```json
-{ "error": "No existe" }
-```
+### `GET /promedio/<id_estudiante>` | Obtiene el promedio ponderado calculado.
+Respuesta: `{ "promedio": 4.25 }`
 
 ---
 
 ## 🗄️ Modelo de datos
 
-La base de datos `estudiantes.db` (SQLite) tiene **dos tablas**:
-
-### Tabla `estudiantes`
-
-| Columna | Tipo | Restricción |
-|---------|------|-------------|
-| `cedula` | TEXT | PRIMARY KEY |
-| `nombre` | TEXT | — |
-
-### Tabla `notas`
-
-| Columna | Tipo | Restricción |
-|---------|------|-------------|
-| `id` | INTEGER | PRIMARY KEY (autoincremental) |
-| `cedula` | TEXT | Referencia lógica a `estudiantes.cedula` |
-| `nota` | REAL | — |
-
-### Diagrama de relación
+La base de datos `universidad.db` (SQLite) utiliza un esquema relacional:
 
 ```mermaid
 erDiagram
-    ESTUDIANTES ||--o{ NOTAS : "tiene"
-    ESTUDIANTES {
-        TEXT cedula PK
+    ASIGNATURAS ||--o{ ESTUDIANTES : "contiene"
+    ASIGNATURAS ||--o{ TIPOS_NOTA : "define"
+    ESTUDIANTES ||--o{ NOTAS : "obtiene"
+    TIPOS_NOTA ||--o{ NOTAS : "evalua"
+
+    ASIGNATURAS {
+        INTEGER id PK
         TEXT nombre
+    }
+    ESTUDIANTES {
+        INTEGER id PK
+        TEXT cedula
+        TEXT nombre
+        INTEGER asignatura_id FK
+    }
+    TIPOS_NOTA {
+        INTEGER id PK
+        TEXT nombre
+        REAL porcentaje
+        INTEGER asignatura_id FK
     }
     NOTAS {
         INTEGER id PK
-        TEXT cedula FK
-        REAL nota
+        INTEGER estudiante_id FK
+        INTEGER tipo_nota_id FK
+        REAL valor
     }
 ```
 

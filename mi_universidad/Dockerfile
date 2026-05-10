@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PORT=5000 \
-    DB_PATH=/data/estudiantes.db
+    DB_PATH=/data/universidad.db
 
 # ========== Directorio de trabajo ==========
 WORKDIR /app

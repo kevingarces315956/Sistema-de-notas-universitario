@@ -232,3 +232,25 @@ function cambiarPestana(panelId) {
 
 function mostrarModal() { $('modalAsignatura').style.display = 'flex'; }
 function cerrarModal() { $('modalAsignatura').style.display = 'none'; }
+
+function mostrarModalEditar(id, nombre, porcentaje) {
+    $('editActId').value = id;
+    $('editActNombre').value = nombre;
+    $('editActPorcentaje').value = porcentaje;
+    $('modalEditarActividad').style.display = 'flex';
+}
+
+function cerrarModalEditar() {
+    $('modalEditarActividad').style.display = 'none';
+}
+
+async function guardarEdicionActividad() {
+    const id = $('editActId').value;
+    const nombre = $('editActNombre').value.trim();
+    const porcentaje = parseFloat($('editActPorcentaje').value);
+    await apiRequest(`/tipo_nota/${id}`, { method: 'PUT', body: JSON.stringify({ nombre, porcentaje }) });
+    cerrarModalEditar();
+    cargarActividades();
+    cargarEstudiantes();
+    showToast('Actividad actualizada', 'success');
+}

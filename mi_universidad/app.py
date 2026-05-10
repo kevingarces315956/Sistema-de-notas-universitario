@@ -43,6 +43,7 @@ def init_db():
                       FOREIGN KEY(estudiante_id) REFERENCES estudiantes(id),
                       FOREIGN KEY(tipo_nota_id) REFERENCES tipos_nota(id))''')
         conn.commit()
+    print(f"Base de datos inicializada en: {os.path.abspath(DB_PATH)}")
 
 init_db()
 

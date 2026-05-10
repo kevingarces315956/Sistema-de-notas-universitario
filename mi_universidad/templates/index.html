@@ -15,56 +15,78 @@
             <p>Gestiona estudiantes, notas y promedios de forma sencilla</p>
         </header>
 
-        <section class="grid">
-            <div class="card">
-                <h3><span class="icon">👤</span> Crear estudiante</h3>
-                <div class="field">
-                    <label for="cedula">Cédula</label>
-                    <input type="text" id="cedula" placeholder="Ej: 12345678">
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="field">
+                <label>📚 Seleccionar Asignatura</label>
+                <div style="display: flex; gap: 10px;">
+                    <select id="selectAsignatura" style="flex: 1; padding: 10px; border-radius: 8px;"></select>
+                    <button onclick="mostrarModal()" class="btn-success" style="width: auto; margin: 0;">+ Nueva</button>
                 </div>
-                <div class="field">
-                    <label for="nombre">Nombre completo</label>
-                    <input type="text" id="nombre" placeholder="Ej: Juan Pérez">
-                </div>
-                <button id="btn-crear" class="btn-success">Crear estudiante</button>
             </div>
+        </div>
 
-            <div class="card">
-                <h3><span class="icon">📝</span> Agregar nota</h3>
-                <div class="field">
-                    <label for="notaCedula">Cédula</label>
-                    <input type="text" id="notaCedula" placeholder="Cédula del estudiante">
-                </div>
-                <div class="field">
-                    <label for="notaValor">Nota (0 - 10)</label>
-                    <input type="number" id="notaValor" placeholder="Ej: 8.5" min="0" max="10" step="0.1">
-                </div>
-                <button id="btn-agregar-nota">Agregar nota</button>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="cambiarPestana('panelEstudiantes')">👨‍🎓 Estudiantes</button>
+            <button class="tab-btn" onclick="cambiarPestana('panelNotas')">📝 Calificaciones</button>
+            <button class="tab-btn" onclick="cambiarPestana('panelActividades')">⚙️ Actividades</button>
+        </div>
+
+        <div id="panelEstudiantes" class="panel card">
+            <h3>Crear Estudiante</h3>
+            <div class="grid">
+                <input type="text" id="estCedula" placeholder="Cédula">
+                <input type="text" id="estNombre" placeholder="Nombre completo">
+                <button onclick="crearEstudiante()" class="btn-success">Registrar</button>
             </div>
+            <table id="tablaEstudiantes" style="width: 100%; margin-top: 20px; border-collapse: collapse;">
+                <thead>
+                    <tr style="text-align: left; border-bottom: 2px solid var(--border);">
+                        <th>Cédula</th><th>Nombre</th><th>Promedio</th><th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
 
-            <div class="card">
-                <h3><span class="icon">🗑️</span> Quitar última nota</h3>
-                <div class="field">
-                    <label for="quitarCedula">Cédula</label>
-                    <input type="text" id="quitarCedula" placeholder="Cédula del estudiante">
-                </div>
-                <button id="btn-quitar" class="btn-danger">Quitar última nota</button>
+        <div id="panelNotas" class="panel card" style="display: none;">
+            <h3>Gestionar Calificaciones</h3>
+            <select id="selectEstudianteNota" style="width: 100%; margin-bottom: 15px; padding: 10px;"></select>
+            <div id="actividadesNotas"></div>
+        </div>
+
+        <div id="panelActividades" class="panel card" style="display: none;">
+            <h3>Configurar Actividades (Porcentajes)</h3>
+            <div class="grid">
+                <input type="text" id="actNombre" placeholder="Nombre (ej: Parcial 1)">
+                <input type="number" id="actPorcentaje" placeholder="Porcentaje (ej: 30)" min="0" max="100">
+                <button onclick="agregarActividad()" class="btn-success">Añadir</button>
             </div>
+            <div id="totalPorcentajeMsg" style="margin-top: 10px;"></div>
+            <table id="tablaActividades" style="width: 100%; margin-top: 15px;">
+                <thead><tr><th>Actividad</th><th>Peso</th><th>Acción</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
 
+        <div id="modalAsignatura" class="modal">
             <div class="card">
-                <h3><span class="icon">📊</span> Ver promedio</h3>
-                <div class="field">
-                    <label for="verCedula">Cédula</label>
-                    <input type="text" id="verCedula" placeholder="Cédula del estudiante">
-                </div>
-                <button id="btn-ver">Ver promedio</button>
+                <h3>Nueva Asignatura</h3>
+                <input type="text" id="nuevaAsignatura" placeholder="Nombre de la materia">
+                <button onclick="crearAsignatura()" class="btn-success">Crear</button>
+                <button onclick="cerrarModal()" class="btn-danger">Cancelar</button>
             </div>
-        </section>
+        </div>
 
-        <section class="result-card">
-            <h3>📋 Resultado</h3>
-            <div id="resultado"></div>
-        </section>
+        <div id="modalEditarActividad" class="modal">
+            <div class="card">
+                <h3>Editar Actividad</h3>
+                <input type="text" id="editActNombre" placeholder="Nombre">
+                <input type="number" id="editActPorcentaje" placeholder="Porcentaje" step="1" min="0" max="100">
+                <input type="hidden" id="editActId">
+                <button onclick="guardarEdicionActividad()" class="btn-success">Guardar</button>
+                <button onclick="cerrarModalEditar()" class="btn-danger">Cancelar</button>
+            </div>
+        </div>
 
         <footer class="footer">
             <p>Hecho con Flask · SQLite · HTML5 · CSS3 · JavaScript</p>
