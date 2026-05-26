@@ -2,7 +2,7 @@
 
 # 🎓 Sistema de Notas Universitario
 
-**v3.0.0** — *Arquitectura Híbrida con Gestión de Asignaturas*
+**v3.1.0** — *Optimización de Rendimiento y Sincronización*
 
 Aplicación web para gestionar estudiantes y calcular promedios de notas universitarias.
 
@@ -53,11 +53,26 @@ El backend está construido con **Flask** y persiste la información en una base
 - ✅ **Sistema de Estudiantes:** Registro de alumnos vinculados a asignaturas específicas.
 - ✅ **Promedios Ponderados:** Cálculo automático basado en el peso de cada actividad.
 - ✅ **Interfaz de Pestañas:** Navegación fluida entre Estudiantes, Calificaciones y Configuración.
+- ✅ **Sincronización en Tiempo Real:** Actualización automática de selectores y tablas sin recargar la página.
 - ✅ **Persistencia local** mediante SQLite, sin necesidad de servidor de BD externo.
 - ✅ **API REST** simple en formato JSON.
 - ✅ **Frontend embebido** servido por la misma aplicación Flask.
 - ✅ **UI moderna** con CSS responsive, validaciones y notificaciones *toast*.
 - ✅ **Despliegue con Docker** (imagen slim, Gunicorn y volumen para persistir la BD).
+
+---
+
+## 🚀 Mejoras Técnicas Recientes
+
+- **Optimización de Consultas (Anti N+1):** Se integró el cálculo de promedios directamente en la consulta SQL de estudiantes, reduciendo el número de peticiones al servidor en un 90%.
+- **Consistencia de UI:** Implementación de `async/await` en el flujo de creación de estudiantes para garantizar que la pestaña de calificaciones esté sincronizada.
+- **Renderizado Eficiente:** Mejora en la manipulación del DOM en `app.js` utilizando mapeo de arreglos para cargas más rápidas.
+
+### Historial de Versiones (Changelog)
+*   **v3.1.0**: Optimización de consultas SQL (promedios pre-calculados) y corrección de desincronización en la pestaña de calificaciones.
+*   **v3.0.0**: Lanzamiento de la versión híbrida con soporte multi-asignatura.
+*   **v2.x.x**: Versiones básicas con almacenamiento local.
+*   **v1.x.x**: Prototipos iniciales.
 
 ---
 

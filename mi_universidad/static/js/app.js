@@ -77,7 +77,8 @@ async function crearEstudiante() {
         showToast(`Estudiante "${nombre}" creado`, 'success');
         $('estCedula').value = '';
         $('estNombre').value = '';
-        cargarEstudiantes();
+        await cargarEstudiantes();
+        await cargarEstudiantesParaNotas();
     } catch (err) { console.error(err); }
 }
 
@@ -86,19 +87,17 @@ async function cargarEstudiantes() {
     try {
         const estudiantes = await apiRequest(`/estudiantes/${asignaturaActual}`);
         const tbody = document.querySelector('#tablaEstudiantes tbody');
-        tbody.innerHTML = '';
         
-        for (const e of estudiantes) {
-            const promData = await apiRequest(`/promedio/${e.id}`);
-            tbody.innerHTML += `
+        const html = estudiantes.map(e => `
                 <tr>
                     <td>${e.cedula}</td>
                     <td>${e.nombre}</td>
-                    <td class="promedio">${promData.promedio}</td>
+                    <td class="promedio">${e.promedio || 0}</td>
                     <td><button class="btn-danger" style="width:auto" onclick="eliminarEstudiante(${e.id})">Eliminar</button></td>
                 </tr>
-            `;
-        }
+            `).join('');
+            
+        tbody.innerHTML = html;
     } catch (err) { console.error(err); }
 }
 
@@ -205,7 +204,8 @@ async function eliminarEstudiante(id) {
     try {
         await apiRequest(`/estudiante/${id}`, { method: 'DELETE' });
         showToast('Estudiante eliminado', 'info');
-        cargarEstudiantes();
+        await cargarEstudiantes();
+        await cargarEstudiantesParaNotas();
     } catch (err) { console.error(err); }
 }
 

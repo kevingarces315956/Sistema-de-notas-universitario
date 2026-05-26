@@ -111,7 +111,15 @@ def eliminar_tipo_nota(tipo_id):
 @app.route('/estudiantes/<int:asignatura_id>', methods=['GET'])
 def get_estudiantes(asignatura_id):
     with get_db() as db:
-        est = db.execute('SELECT * FROM estudiantes WHERE asignatura_id = ?', (asignatura_id,)).fetchall()
+        est = db.execute('''
+            SELECT e.*, 
+                   (SELECT COALESCE(ROUND(SUM(n.valor * (t.porcentaje / 100.0)), 2), 0)
+                    FROM notas n
+                    JOIN tipos_nota t ON n.tipo_nota_id = t.id
+                    WHERE n.estudiante_id = e.id) as promedio
+            FROM estudiantes e
+            WHERE e.asignatura_id = ?
+        ''', (asignatura_id,)).fetchall()
     return jsonify([dict(e) for e in est])
 
 @app.route('/estudiante', methods=['POST'])
