@@ -183,7 +183,9 @@ pip install -r mi_universidad/requirements.txt
 ### Pasos para iniciar la aplicación
 
 ```bash
-# 1. Ejecutar el servidor Flask
+# 1. entra al archivo principal del proyecto
+cd mi_universidad
+# 2. Ejecutar el servidor Flask
 python app.py
 ```
 
