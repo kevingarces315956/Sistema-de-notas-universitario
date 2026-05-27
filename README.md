@@ -141,6 +141,8 @@ pip --version
 
 ```bash
 git clone https://github.com/kevingarces315956/Sistema-de-notas-universitario
+Entrar a la carpeta de la aplicación: cd Sistema-de-notas-universitario
+
 ```
 
 ### 2. (Opcional pero recomendado) Crear un entorno virtual
@@ -181,10 +183,7 @@ pip install -r mi_universidad/requirements.txt
 ### Pasos para iniciar la aplicación
 
 ```bash
-# 1. Entrar a la carpeta de la aplicación
-cd Sistema-de-notas-universitario
-
-# 2. Ejecutar el servidor Flask
+# 1. Ejecutar el servidor Flask
 python app.py
 ```
 
