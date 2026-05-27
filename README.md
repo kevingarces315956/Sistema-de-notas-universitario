@@ -183,7 +183,7 @@ pip install -r mi_universidad/requirements.txt
 
 ```bash
 # 1. Entrar a la carpeta de la aplicación
-cd mi_universidad
+cd Sistema-de-notas-universitario
 
 # 2. Ejecutar el servidor Flask
 python app.py
