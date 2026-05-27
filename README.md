@@ -140,7 +140,7 @@ pip --version
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <URL-del-repositorio>
+git clone https://github.com/kevingarces315956/Sistema-de-notas-universitario
 cd repositorio_kevin
 ```
 
