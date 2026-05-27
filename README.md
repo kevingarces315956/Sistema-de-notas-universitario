@@ -141,7 +141,6 @@ pip --version
 
 ```bash
 git clone https://github.com/kevingarces315956/Sistema-de-notas-universitario
-cd repositorio_kevin
 ```
 
 ### 2. (Opcional pero recomendado) Crear un entorno virtual
